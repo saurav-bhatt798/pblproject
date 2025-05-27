@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NodeList Manager: Visual Contact Organizer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --secondary: #f43f5e;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --glass: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --accent: #22d3ee;
+            --shadow: 0 10px 40px rgba(59, 130, 246, 0.15);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --node-width: 180px;
+            --node-height: 120px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e40af 100%);
+            color: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        header.scrolled {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow);
+            background: rgba(15, 23, 42, 0.98);
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            color: var(--primary);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-links a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 60%;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--accent);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 1.8rem;
+            cursor: pointer;
+        }
+
+        #hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #1e40af 0%, #0f172a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            text-align: center;
+            padding: 3rem;
+            background: var(--glass);
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(15px);
+            max-width: 800px;
+            transform: translateY(20px);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(20px); }
+            50% { transform: translateY(0); }
+        }
+
+        .hero-content h1 {
+            font-size: 3.2rem;
+            background: linear-gradient(90deg, #fff, #93c5fd);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -1px;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            color: #d1d5db;
+            margin-bottom: 2rem;
+        }
+
+        .hero-btns {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.8rem 1.8rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: #fff;
+            transform: translateY(-3px);
+        }
+
+        section h2 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        section p {
+            text-align: center;
+            color: #d1d5db;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        #team {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .team-member {
+            background: var(--glass);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            position: relative;
+        }
+
+        .team-member:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 15px 50px rgba(59, 130, 246, 0.2);
+        }
+
+        .member-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .member-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .add-photo-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-photo-btn:hover {
+            background: #06b6d4;
+            transform: scale(1.1);
+        }
+
+        #about-linked-list {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, #0f172a 0%, #3b82f6 100%);
+        }
+
+        .about-content {
+            display: flex;
+            gap: 3rem;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .about-text {
+            flex: 1 1 400px;
+            max-width: 600px;
+        }
+
+        .about-visual {
+            flex: 1 1 400px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .linked-list-visual-swiper {
+            width: 400px;
+            height: 150px;
+        }
+
+        .ll-swiper .swiper-slide {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .node {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-weight: 600;
+            font-size: 1rem;
+            box-shadow: var(--shadow);
+            position: relative;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .node-pointer {
+            width: 30px;
+            height: 4px;
+            background: var(--accent);
+            position: relative;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { width: 0; }
+            to { width: 30px; }
+        }
+
+        .node-pointer::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: -5px;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-left: 10px solid var(--accent);
+        }
+
+        .null-pointer {
+            color: var(--secondary);
+            font-style: italic;
+            font-size: 1rem;
+        }
+
+        #operations {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+
+        .operations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .operation-card {
+            background: var(--glass);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.4s ease;
+        }
+
+        .operation-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow);
+        }
+
+        .operation-icon {
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            animation: iconPulse 2s infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        #visualizer {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, #0f172a 0%, #22d3ee 100%);
+        }
+
+        .visualizer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: var(--glass);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+        }
+
+        .visualizer-controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .visualizer-display {
+            min-height: 300px;
+            padding: 2rem;
+            position: relative;
+            display: flex;
+            align-items: center;
+            overflow-x: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--primary);
+            width: 0;
+            transition: width 0.5s ease;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar.active {
+            width: 100%;
+        }
+
+        .operation-log {
+            background: #111827;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            color: #d1d5db;
+            font-size: 0.9rem;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .operation-log p {
+            text-align: left;
+            margin: 0.2rem 0;
+            padding: 0.2rem 0;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .linked-list-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 1rem;
+            min-height: 200px;
+        }
+
+        .node-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .visual-node {
+            width: var(--node-width);
+            height: var(--node-height);
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+            color: #fff;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            position: relative;
+            animation: nodeFadeIn 0.5s ease;
+            justify-content: center;
+        }
+
+        @keyframes nodeFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .visual-node.highlight {
+            border: 3px solid var(--secondary);
+            animation: highlightNode 1.5s ease-in-out;
+        }
+
+        @keyframes highlightNode {
+            0% { transform: scale(1); box-shadow: 0 0 0 rgba(244, 63, 94, 0); }
+            50% { transform: scale(1.1); box-shadow: 0 0 25px rgba(244, 63, 94, 0.7); }
+            100% { transform: scale(1); box-shadow: 0 0 0 rgba(244, 63, 94, 0); }
+        }
+
+        .visual-node.traverse {
+            animation: traverseNode 0.8s ease;
+        }
+
+        @keyframes traverseNode {
+            0% { border-color: var(--secondary); }
+            50% { border-color: var(--secondary); transform: scale(1.05); }
+            100% { border-color: transparent; }
+        }
+
+        .visual-node-name,
+        .visual-node-phone,
+        .visual-node-email {
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 90%;
+            margin: 0.2rem 0;
+        }
+
+        .visual-pointer {
+            width: 40px;
+            height: 4px;
+            background: var(--accent);
+            position: relative;
+            animation: pointerSlide 0.5s ease;
+        }
+
+        @keyframes pointerSlide {
+            from { width: 0; }
+            to { width: 40px; }
+        }
+
+        .visual-pointer::after {
+            content: '';
+            position: absolute;
+            right: -8px;
+            top: -6px;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-left: 12px solid var(--accent);
+        }
+
+        .visual-null {
+            color: var(--secondary);
+            font-style: italic;
+            font-size: 1.1rem;
+            padding: 0.5rem;
+            background: rgba(244, 63, 94, 0.1);
+            border-radius: 8px;
+        }
+
+        #contact-manager {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, #0f172a 0%, #14b8a6 100%);
+        }
+
+        .contact-manager-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: var(--glass);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+        }
+
+        .contact-controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .contact-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .contact-card {
+            background: var(--glass);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            border: 1px solid var(--glass-border);
+        }
+
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+
+        .contact-card.highlight {
+            border: 2px solid var(--secondary);
+            animation: highlightNode 1.5s ease-in-out;
+        }
+
+        .contact-name,
+        .contact-phone,
+        .contact-email {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .contact-card:hover .contact-actions {
+            opacity: 1;
+        }
+
+        .contact-action-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .contact-action-btn.edit:hover { color: var(--accent); }
+        .contact-action-btn.delete:hover { color: var(--secondary); }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            padding: 2rem;
+            border-radius: 16px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: var(--shadow);
+            transform: scale(0.7);
+            transition: transform 0.3s ease;
+            border: 1px solid var(--glass-border);
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: #93c5fd;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            color: #fff;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: #d1d5db;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #111827;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+
+        .popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: #fff;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            z-index: 3000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .popup.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .popup.error {
+            background: var(--secondary);
+        }
+
+        .voice-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .voice-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        .voice-btn.active {
+            background: var(--secondary);
+            animation: pulse 1.5s infinite;
+        }
+
+        #documentation {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, #0f172a 0%, #b91c1c 100%);
+        }
+
+        .doc-section {
+            margin-bottom: 2rem;
+        }
+
+        .code-block {
+            background: #111827;
+            border-radius: 8px;
+            padding: 1.5rem;
+            border-left: 4px solid var(--primary);
+            overflow-x: auto;
+        }
+
+        pre {
+            margin: 0;
+            font-family: 'Fira Code', monospace;
+            color: #e5e7eb;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        footer {
+            background: #0f172a;
+            padding: 2rem 0;
+            text-align: center;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links a {
+            color: #93c5fd;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        .copyright {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        /* New styles for improved visualization */
+        .node-address {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 0.6rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .node-data {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+        }
+
+        .node-pointer-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pointer-label {
+            font-size: 0.7rem;
+            color: var(--accent);
+            margin-right: 5px;
+        }
+
+        .visual-node .field-label {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.2rem;
+        }
+
+        .empty-list-message {
+            color: #93c5fd;
+            font-style: italic;
+            text-align: center;
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --node-width: 150px;
+                --node-height: 110px;
+            }
+            
+            .nav-links {
+                position: fixed;
+                top: 60px;
+                left: 0;
+                width: 100%;
+                background: rgba(15, 23, 42, 0.95);
+                flex-direction: column;
+                padding: 2rem;
+                transform: translateY(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .nav-links.open {
+                transform: translateY(0);
+            }
+
+            .menu-btn {
+                display: block;
+            }
+
+            .hero-content h1 {
+                font-size: 2.2rem;
+            }
+
+            .about-content {
+                flex-direction: column;
+            }
+
+            .linked-list-visual-swiper {
+                width: 100%;
+            }
+
+            .visual-node {
+                width: 140px;
+                height: 100px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            :root {
+                --node-width: 130px;
+                --node-height: 90px;
+            }
+            
+            .visualizer-container,
+            .contact-manager-container {
+                padding: 1rem;
+            }
+
+            .visual-node,
+            .contact-card {
+                width: 100%;
+                max-width: 160px;
+            }
+            
+            .visual-node-name,
+            .visual-node-phone,
+            .visual-node-email {
+                font-size: 0.75rem;
+            }
+            
+            .node-address {
+                font-size: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="#" class="logo">
+                    <i class="fas fa-link"></i> NodeList Manager
+                </a>
+                <div class="nav-links" id="navLinks">
+                    <a href="#hero" class="active">Home</a>
+                    <a href="#about-linked-list">Linked List</a>
+                    <a href="#visualizer">Visualizer</a>
+                    <a href="#contact-manager">Contacts</a>
+                    <a href="#documentation">Docs</a>
+                </div>
+                <button class="menu-btn" id="menuBtn" aria-label="Toggle Menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <section id="hero">
+        <div class="container">
+            <div class="hero-content" data-aos="fade-up">
+                <h1>Master Linked Lists with NodeList Manager</h1>
+                <p>Visualize singly linked list operations in real-time with clear animations and voice guidance. Manage contacts and learn how nodes connect.</p>
+                <div class="hero-btns">
+                    <a href="#visualizer" class="btn btn-primary"><i class="fas fa-play"></i> Try Visualizer</a>
+                    <a href="#contact-manager" class="btn btn-outline"><i class="fas fa-address-book"></i> Manage Contacts</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="team">
+        <div class="container">
+            <h2 data-aos="fade-up">Our Team</h2>
+            <p data-aos="fade-up" data-aos-delay="100">Meet the creators of NodeList Manager</p>
+            <div class="team-grid">
+                <div class="team-member" data-aos="zoom-in">
+                    <img src="https://via.placeholder.com/100" alt="Saurav Bhatt" class="member-img" id="img-saurav">
+                    <h3 class="member-name">Saurav Bhatt</h3>
+                    <button class="add-photo-btn" onclick="triggerPhotoUpload('img-saurav')"><i class="fas fa-camera"></i></button>
+                    <input type="file" accept="image/*" style="display:none;" onchange="updatePhoto(event,'img-saurav')" id="file-img-saurav">
+                </div>
+                <div class="team-member" data-aos="zoom-in" data-aos-delay="100">
+                    <img src="https://via.placeholder.com/100" alt="Asish Mehra" class="member-img" id="img-asish">
+                    <h3 class="member-name">Asish Mehra</h3>
+                    <button class="add-photo-btn" onclick="triggerPhotoUpload('img-asish')"><i class="fas fa-camera"></i></button>
+                    <input type="file" accept="image/*" style="display:none;" onchange="updatePhoto(event,'img-asish')" id="file-img-asish">
+                </div>
+                <div class="team-member" data-aos="zoom-in" data-aos-delay="200">
+                    <img src="https://via.placeholder.com/100" alt="Nerraj Aswal" class="member-img" id="img-nerraj">
+                    <h3 class="member-name">Nerraj Aswal</h3>
+                    <button class="add-photo-btn" onclick="triggerPhotoUpload('img-nerraj')"><i class="fas fa-camera"></i></button>
+                    <input type="file" accept="image/*" style="display:none;" onchange="updatePhoto(event,'img-nerraj')" id="file-img-nerraj">
+                </div>
+                <div class="team-member" data-aos="zoom-in" data-aos-delay="300">
+                    <img src="https://via.placeholder.com/100" alt="Kavindra Singh Rautela" class="member-img" id="img-kavindra">
+                    <h3 class="member-name">Kavindra Singh Rautela</h3>
+                    <button class="add-photo-btn" onclick="triggerPhotoUpload('img-kavindra')"><i class="fas fa-camera"></i></button>
+                    <input type="file" accept="image/*" style="display:none;" onchange="updatePhoto(event,'img-kavindra')" id="file-img-kavindra">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about-linked-list">
+        <div class="container">
+            <h2 data-aos="fade-up">What is a Singly Linked List?</h2>
+            <div class="about-content">
+                <div class="about-text" data-aos="fade-right">
+                    <p>A singly linked list is a chain of nodes where each node holds data and a pointer to the next node.</p>
+                    <p>It allows fast insertions and deletions by updating pointers, unlike arrays that require shifting elements.</p>
+                    <p>NodeList Manager visualizes this structure with voice assistance, making it easy to understand.</p>
+                </div>
+                <div class="about-visual" data-aos="fade-left">
+                    <div class="linked-list-visual-swiper">
+                        <div class="swiper ll-swiper">
+                            <div class="swiper-wrapper">
+                                <div class="swiper-slide">
+                                    <div class="node">Node 1</div>
+                                    <div class="node-pointer"></div>
+                                </div>
+                                <div class="swiper-slide">
+                                    <div class="node">Node 2</div>
+                                    <div class="node-pointer"></div>
+                                </div>
+                                <div class="swiper-slide">
+                                    <div class="node">Node 3</div>
+                                    <span class="null-pointer">NULL</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="operations">
+        <div class="container">
+            <h2 data-aos="fade-up">Linked List Operations</h2>
+            <p data-aos="fade-up" data-aos-delay="100">Explore the core operations powering linked lists</p>
+            <div class="operations">
+                <div class="operation-card" data-aos="flip-up">
+                    <div class="operation-icon"><i class="fas fa-plus-circle"></i></div>
+                    <h3>Insert</h3>
+                    <p>Add contacts by linking new nodes to the list.</p>
+                </div>
+                <div class="operation-card" data-aos="flip-up" data-aos-delay="100">
+                    <div class="operation-icon"><i class="fas fa-minus-circle"></i></div>
+                    <h3>Delete</h3>
+                    <p>Remove contacts by updating node pointers.</p>
+                </div>
+                <div class="operation-card" data-aos="flip-up" data-aos-delay="200">
+                    <div class="operation-icon"><i class="fas fa-search"></i></div>
+                    <h3>Search</h3>
+                    <p>Find contacts by traversing the list.</p>
+                </div>
+                <div class="operation-card" data-aos="flip-up" data-aos-delay="300">
+                    <div class="operation-icon"><i class="fas fa-edit"></i></div>
+                    <h3>Update</h3>
+                    <p>Modify contact details in a node.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="visualizer">
+        <div class="container">
+            <h2 data-aos="fade-up">Linked List Visualizer</h2>
+            <p data-aos="fade-up" data-aos-delay="100">See how a singly linked list works with real-time animations and voice guidance.</p>
+            <div class="visualizer-container            <div class="visualizer-controls">
+                <button class="btn btn-primary" onclick="openAddModal('visualizer')"><i class="fas fa-plus"></i> Add Node</button>
+                <button class="btn btn-outline" onclick="deleteNode()"><i class="fas fa-trash"></i> Delete Node</button>
+                <button class="btn btn-outline" onclick="searchNode()"><i class="fas fa-search"></i> Search Node</button>
+                <button class="btn btn-outline" onclick="traverseList()"><i class="fas fa-arrow-right"></i> Traverse List</button>
+            </div>
+            <div class="visualizer-display" id="visualizerDisplay">
+                <div class="linked-list-container" id="linkedListContainer">
+                    <p class="empty-list-message">List is empty. Add a node to start!</p>
+                </div>
+            </div>
+            <div class="progress-bar" id="progressBar"></div>
+            <div class="operation-log" id="operationLog"></div>
+        </div>
+    </section>
+
+    <section id="contact-manager">
+        <div class="container">
+            <h2 data-aos="fade-up">Contact Manager</h2>
+            <p data-aos="fade-up" data-aos-delay="100">Manage your contacts with our intuitive interface.</p>
+            <div class="contact-manager-container">
+                <div class="contact-controls">
+                    <button class="btn btn-primary" onclick="openAddModal('contact')"><i class="fas fa-user-plus"></i> Add Contact</button>
+                    <button class="btn btn-outline" onclick="clearContacts()"><i class="fas fa-trash-alt"></i> Clear All</button>
+                </div>
+                <div class="contact-list" id="contactList"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="documentation">
+        <div class="container">
+            <h2 data-aos="fade-up">Documentation</h2>
+            <p data-aos="fade-up" data-aos-delay="100">Understand the code and logic behind our linked list implementation.</p>
+            <div class="doc-section" data-aos="fade-up">
+                <h3>Node Structure</h3>
+                <div class="code-block">
+                    <pre>
+class Node {
+    constructor(name, phone, email) {
+        this.name = name;
+        this.phone = phone;
+        this.email = email;
+        this.next = null;
+    }
+}
+                    </pre>
+                </div>
+            </div>
+            <div class="doc-section" data-aos="fade-up" data-aos-delay="100">
+                <h3>Linked List Operations</h3>
+                <div class="code-block">
+                    <pre>
+class LinkedList {
+    constructor() {
+        this.head = null;
+        this.size = 0;
+    }
+
+    addNode(name, phone, email) { ... }
+    deleteNode(name) { ... }
+    searchNode(name) { ... }
+    traverseList() { ... }
+}
+                    </pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('addModal')"><i class="fas fa-times"></i></button>
+            <h2 class="modal-title">Add Contact</h2>
+            <div class="form-group">
+                <label for="nodeName">Name</label>
+                <input type="text" id="nodeName" class="form-control" placeholder="Enter name">
+            </div>
+            <div class="form-group">
+                <label for="nodePhone">Phone</label>
+                <input type="tel" id="nodePhone" class="form-control" placeholder="Enter phone">
+            </div>
+            <div class="form-group">
+                <label for="nodeEmail">Email</label>
+                <input type="email" id="nodeEmail" class="form-control" placeholder="Enter email">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="addNodeFromModal()"><i class="fas fa-save"></i> Save</button>
+                <button class="btn btn-outline" onclick="closeModal('addModal')"><i class="fas fa-times"></i> Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('editModal')"><i class="fas fa-times"></i></button>
+            <h2 class="modal-title">Edit Contact</h2>
+            <div class="form-group">
+                <label for="editNodeName">Name</label>
+                <input type="text" id="editNodeName" class="form-control" placeholder="Enter name">
+            </div>
+            <div class="form-group">
+                <label for="editNodePhone">Phone</label>
+                <input type="tel" id="editNodePhone" class="form-control" placeholder="Enter phone">
+            </div>
+            <div class="form-group">
+                <label for="editNodeEmail">Email</label>
+                <input type="email" id="editNodeEmail" class="form-control" placeholder="Enter email">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="saveEditNode()"><i class="fas fa-save"></i> Save</button>
+                <button class="btn btn-outline" onclick="closeModal('editModal')"><i class="fas fa-times"></i> Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="searchModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('searchModal')"><i class="fas fa-times"></i></button>
+            <h2 class="modal-title">Search Contact</h2>
+            <div class="form-group">
+                <label for="searchNodeName">Name</label>
+                <input type="text" id="searchNodeName" class="form-control" placeholder="Enter name to search">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="searchNodeFromModal()"><i class="fas fa-search"></i> Search</button>
+                <button class="btn btn-outline" onclick="closeModal('searchModal')"><i class="fas fa-times"></i> Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="popup" id="popup"></div>
+    <button class="voice-btn" id="voiceBtn" onclick="toggleVoiceRecognition()"><i class="fas fa-microphone"></i></button>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="#hero">Home</a>
+                <a href="#about-linked-list">About</a>
+                <a href="#visualizer">Visualizer</a>
+                <a href="#contact-manager">Contacts</a>
+                <a href="#documentation">Docs</a>
+            </div>
+            <p class="copyright">&copy; 2025 NodeList Manager. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <script>
+        // Initialize AOS
+        AOS.init({ duration: 1000, once: true });
+
+        // Swiper for Linked List Visualization
+        const swiper = new Swiper('.ll-swiper', {
+            slidesPerView: 'auto',
+            spaceBetween: 10,
+            loop: false,
+            centeredSlides: true,
+            autoplay: { delay: 3000, disableOnInteraction: true },
+        });
+
+        // Navigation
+        const menuBtn = document.getElementById('menuBtn');
+        const navLinks = document.getElementById('navLinks');
+        menuBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('open');
+            menuBtn.querySelector('i').classList.toggle('fa-bars');
+            menuBtn.querySelector('i').classList.toggle('fa-times');
+        });
+
+        // Header Scroll Effect
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            header.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // Node Class
+        class Node {
+            constructor(name, phone, email) {
+                this.name = name;
+                this.phone = phone;
+                this.email = email;
+                this.next = null;
+            }
+        }
+
+        // Linked List Class
+        class LinkedList {
+            constructor() {
+                this.head = null;
+                this.size = 0;
+            }
+
+            addNode(name, phone, email) {
+                const newNode = new Node(name, phone, email);
+                if (!this.head) {
+                    this.head = newNode;
+                } else {
+                    let current = this.head;
+                    while (current.next) {
+                        current = current.next;
+                    }
+                    current.next = newNode;
+                }
+                this.size++;
+                this.renderList();
+                this.renderContactList();
+                showPopup(`Added contact: ${name}`, true);
+                speak(`Contact ${name} added to the list.`);
+            }
+
+            deleteNode(name) {
+                if (!this.head) {
+                    showPopup('List is empty.', false);
+                    speak('The list is empty.');
+                    return;
+                }
+                if (this.head.name === name) {
+                    this.head = this.head.next;
+                    this.size--;
+                    this.renderList();
+                    this.renderContactList();
+                    showPopup(`Deleted contact: ${name}`, true);
+                    speak(`Contact ${name} deleted from the list.`);
+                    return;
+                }
+                let current = this.head;
+                let prev = null;
+                while (current && current.name !== name) {
+                    prev = current;
+                    current = current.next;
+                }
+                if (current) {
+                    prev.next = current.next;
+                    this.size--;
+                    this.renderList();
+                    this.renderContactList();
+                    showPopup(`Deleted contact: ${name}`, true);
+                    speak(`Contact ${name} deleted from the list.`);
+                } else {
+                    showPopup(`Contact ${name} not found.`, false);
+                    speak(`Contact ${name} not found in the list.`);
+                }
+            }
+
+            searchNode(name) {
+                if (!this.head) {
+                    showPopup('List is empty.', false);
+                    speak('The list is empty.');
+                    return;
+                }
+                let current = this.head;
+                let index = 0;
+                const nodes = document.querySelectorAll('.visual-node');
+                const progressBar = document.getElementById('progressBar');
+
+                const traverse = async () => {
+                    progressBar.classList.add('active');
+                    for (let i = 0; i < nodes.length; i++) {
+                        nodes[i].classList.add('traverse');
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        nodes[i].classList.remove('traverse');
+                        if (current && current.name === name) {
+                            nodes[i].classList.add('highlight');
+                            showPopup(`Found contact: ${name}`, true);
+                            speak(`Contact ${name} found at position ${index + 1}.`);
+                            progressBar.classList.remove('active');
+                            return;
+                        }
+                        current = current ? current.next : null;
+                        index++;
+                    }
+                    showPopup(`Contact ${name} not found.`, false);
+                    speak(`Contact ${name} not found in the list.`);
+                    progressBar.classList.remove('active');
+                };
+                traverse();
+            }
+
+            traverseList() {
+                if (!this.head) {
+                    showPopup('List is empty.', false);
+                    speak('The list is empty.');
+                    return;
+                }
+                let current = this.head;
+                const nodes = document.querySelectorAll('.visual-node');
+                const progressBar = document.getElementById('progressBar');
+
+                const traverse = async () => {
+                    progressBar.classList.add('active');
+                    for (let i = 0; i < nodes.length; i++) {
+                        nodes[i].classList.add('traverse');
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        nodes[i].classList.remove('traverse');
+                        speak(`Visiting contact: ${current.name}`);
+                        current = current.next;
+                    }
+                    progressBar.classList.remove('active');
+                    showPopup('Traversal complete.', true);
+                    speak('List traversal complete.');
+                };
+                traverse();
+            }
+
+            updateNode(oldName, newName, newPhone, newEmail) {
+                let current = this.head;
+                while (current) {
+                    if (current.name === oldName) {
+                        current.name = newName;
+                        current.phone = newPhone;
+                        current.email = newEmail;
+                        this.renderList();
+                        this.renderContactList();
+                        showPopup(`Updated contact: ${newName}`, true);
+                        speak(`Contact ${newName} updated.`);
+                        return;
+                    }
+                    current = current.next;
+                }
+                showPopup(`Contact ${oldName} not found.`, false);
+                speak(`Contact ${oldName} not found in the list.`);
+            }
+
+            clearList() {
+                this.head = null;
+                this.size = 0;
+                this.renderList();
+                this.renderContactList();
+                showPopup('All contacts cleared.', true);
+                speak('All contacts cleared from the list.');
+            }
+
+            renderList() {
+                const container = document.getElementById('linkedListContainer');
+                container.innerHTML = '';
+                if (!this.head) {
+                    container.innerHTML = '<p class="empty-list-message">List is empty. Add a node to start!</p>';
+                    return;
+                }
+                let current = this.head;
+                const fragment = document.createDocumentFragment();
+                while (current) {
+                    const nodeWrapper = document.createElement('div');
+                    nodeWrapper.className = 'node-wrapper';
+                    const nodeElement = document.createElement('div');
+                    nodeElement.className = 'visual-node';
+                    nodeElement.innerHTML = `
+                        <div class="node-address">Addr: ${Math.random().toString(16).slice(2, 8)}</div>
+                        <div class="node-data">
+                            <div class="field-label">Name</div>
+                            <div class="visual-node-name">${current.name}</div>
+                            <div class="field-label">Phone</div>
+                            <div class="visual-node-phone">${current.phone}</div>
+                            <div class="field-label">Email</div>
+                            <div class="visual-node-email">${current.email}</div>
+                        </div>
+                    `;
+                    nodeWrapper.appendChild(nodeElement);
+                    if (current.next) {
+                        const pointer = document.createElement('div');
+                        pointer.className = 'visual-pointer';
+                        pointer.innerHTML = '<span class="pointer-label">Next</span>';
+                        nodeWrapper.appendChild(pointer);
+                    } else {
+                        const nullPointer = document.createElement('div');
+                        nullPointer.className = 'visual-null';
+                        nullPointer.textContent = 'NULL';
+                        nodeWrapper.appendChild(nullPointer);
+                    }
+                    fragment.appendChild(nodeWrapper);
+                    current = current.next;
+                }
+                container.appendChild(fragment);
+                logOperation('List rendered.');
+            }
+
+            renderContactList() {
+                const contactList = document.getElementById('contactList');
+                contactList.innerHTML = '';
+                if (!this.head) {
+                    contactList.innerHTML = '<p class="empty-list-message">No contacts available.</p>';
+                    return;
+                }
+                let current = this.head;
+                const fragment = document.createDocumentFragment();
+                while (current) {
+                    const contactCard = document.createElement('div');
+                    contactCard.className = 'contact-card';
+                    contactCard.innerHTML = `
+                        <div class="contact-name">${current.name}</div>
+                        <div class="contact-phone">${current.phone}</div>
+                        <div class="contact-email">${current.email}</div>
+                        <div class="contact-actions">
+                            <button class="contact-action-btn edit" onclick="openEditModal('${current.name}', '${current.phone}', '${current.email}')"><i class="fas fa-edit"></i></button>
+                            <button class="contact-action-btn delete" onclick="linkedList.deleteNode('${current.name}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    `;
+                    fragment.appendChild(contactCard);
+                    current = current.next;
+                }
+                contactList.appendChild(fragment);
+            }
+        }
+
+        // Initialize Linked List
+        const linkedList = new LinkedList();
+
+        // Modal Functions
+        function openAddModal(type) {
+            document.getElementById('addModal').classList.add('active');
+            document.getElementById('nodeName').focus();
+            document.getElementById('addModal').dataset.type = type;
+        }
+
+        function openEditModal(name, phone, email) {
+            document.getElementById('editModal').classList.add('active');
+            document.getElementById('editNodeName').value = name;
+            document.getElementById('editNodePhone').value = phone;
+            document.getElementById('editNodeEmail').value = email;
+            document.getElementById('editModal').dataset.oldName = name;
+        }
+
+        function openSearchModal() {
+            document.getElementById('searchModal').classList.add('active');
+            document.getElementById('searchNodeName').focus();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.getElementById('nodeName').value = '';
+            document.getElementById('nodePhone').value = '';
+            document.getElementById('nodeEmail').value = '';
+            document.getElementById('searchNodeName').value = '';
+        }
+
+        function addNodeFromModal() {
+            const name = document.getElementById('nodeName').value.trim();
+            const phone = document.getElementById('nodePhone').value.trim();
+            const email = document.getElementById('nodeEmail').value.trim();
+            if (name && phone && email) {
+                linkedList.addNode(name, phone, email);
+                closeModal('addModal');
+            } else {
+                showPopup('Please fill all fields.', false);
+                speak('Please fill all fields to add a contact.');
+            }
+        }
+
+        function saveEditNode() {
+            const oldName = document.getElementById('editModal').dataset.oldName;
+            const newName = document.getElementById('editNodeName').value.trim();
+            const newPhone = document.getElementById('editNodePhone').value.trim();
+            const newEmail = document.getElementById('editNodeEmail').value.trim();
+            if (newName && newPhone && newEmail) {
+                linkedList.updateNode(oldName, newName, newPhone, newEmail);
+                closeModal('editModal');
+            } else {
+                showPopup('Please fill all fields.', false);
+                speak('Please fill all fields to update the contact.');
+            }
+        }
+
+        function searchNode() {
+            openSearchModal();
+        }
+
+        function searchNodeFromModal() {
+            const name = document.getElementById('searchNodeName').value.trim();
+            if (name) {
+                linkedList.searchNode(name);
+                closeModal('searchModal');
+            } else {
+                showPopup('Please enter a name to search.', false);
+                speak('Please enter a name to search for a contact.');
+            }
+        }
+
+        function traverseList() {
+            linkedList.traverseList();
+        }
+
+        function clearContacts() {
+            linkedList.clearList();
+        }
+
+        // Popup Notification
+        function showPopup(message, isSuccess) {
+            const popup = document.getElementById('popup');
+            popup.textContent = message;
+            popup.classList.remove('error', 'show');
+            popup.classList.add(isSuccess ? 'show' : 'error');
+            setTimeout(() => popup.classList.remove('show'), 3000);
+        }
+
+        // Operation Log
+        function logOperation(message) {
+            const log = document.getElementById('operationLog');
+            const entry = document.createElement('p');
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // Voice Recognition
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onresult = function(event) {
+            const command = event.results[0][0].transcript.toLowerCase().trim();
+            logOperation(`Voice command: ${command}`);
+            if (command.includes('add contact')) {
+                openAddModal('visualizer');
+            } else if (command.includes('delete contact')) {
+                const name = prompt('Enter name to delete:');
+                if (name) linkedList.deleteNode(name);
+            } else if (command.includes('search contact')) {
+                openSearchModal();
+            } else if (command.includes('traverse list')) {
+                traverseList();
+            } else if (command.includes('clear contacts')) {
+                clearContacts();
+            } else {
+                showPopup('Command not recognized.', false);
+                speak('Sorry, I didn’t understand that command.');
+            }
+        };
+
+        recognition.onend = function() {
+            document.getElementById('voiceBtn').classList.remove('active');
+        };
+
+        function toggleVoiceRecognition() {
+            const voiceBtn = document.getElementById('voiceBtn');
+            if (!voiceBtn.classList.contains('active')) {
+                voiceBtn.classList.add('active');
+                recognition.start();
+                speak('Voice recognition started. Say a command like add contact, delete contact, or traverse list.');
+            } else {
+                recognition.stop();
+                voiceBtn.classList.remove('active');
+                speak('Voice recognition stopped.');
+            }
+        }
+
+        // Text-to-Speech
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1;
+            utterance.pitch = 1;
+            utterance.volume = 0.8;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Photo Upload
+        function triggerPhotoUpload(imgId) {
+            document.getElementById(`file-${imgId}`).click();
+        }
+
+        function updatePhoto(event, imgId) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(imgId).src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Smooth Scroll for Nav Links
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+                this.classList.add('active');
+                const target = document.querySelector(this.getAttribute('href'));
+                target.scrollIntoView({ behavior: 'smooth' });
+                if (navLinks.classList.contains('open')) {
+                    navLinks.classList.remove('open');
+                    menuBtn.querySelector('i').classList.toggle('fa-bars');
+                    menuBtn.querySelector('i').classList.toggle('fa-times');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
